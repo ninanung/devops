@@ -1,0 +1,63 @@
+- hosts: vm1
+  become: yes
+  tasks:
+  - name: Apache 설치
+    yum: 
+      name=httpd
+      state=latest
+  - name: Apache 실행
+    service: 
+      name=httpd 
+      state=started 
+      enabled=yes
+  - name: register 테스트
+    shell: date +%Y%m%d
+    register: date
+
+  - debug: var=date
+
+  - name: 날짜 디렉터리 생성
+    file: 
+      path=/tmp/{{ date.stdout }}
+      state=directory
+      owner=vagrant
+      group=vagrant
+      mode=0755
+
+  - debug: var=ansible_nodename
+
+  - name: 반복실행
+    yum: 
+      name:
+        - httpd
+        - git
+        - php
+      state: present
+
+  - name: 조건문 RedHat
+    yum: 
+      name: httpd
+      state: latest
+    when: 
+      ansible_os_family == "RedHat"
+  
+  - name: 조건문 Debian
+    apt: 
+      name: apache-mpm-prefork
+      state: latest
+    when: 
+      ansible_os_family == "Debiant"
+
+  - name: centos6 또는 7일 경우에만 수행
+    yum:
+      name: httpd
+      state: latest
+    when: ansible_distribution == "CentOS" and (ansible_distribution_major_version == "6" or ansible_distribution_major_version == "7")
+
+  - vars:
+      msg: |
+        {{ ansible_os_family }}
+        {{ ansible_distribution }}
+        {{ ansible_distribution_major_version }}
+    debug: 
+      msg: "{{ msg.split('\n') }}"
