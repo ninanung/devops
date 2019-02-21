@@ -23,3 +23,9 @@ db_database=app
 db_test_database=app_test
 db_username=vagrant
 db_password=pass
+
+[web]
+vagrant_vm1
+
+[db]
+vagrant_vm1

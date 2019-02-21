@@ -1,0 +1,47 @@
+- hosts: web
+  tasks:
+    # 배포
+    - name: 코드 배포
+      git:
+        repo: https://github.com/shin1x1/gihyo-devops-ansible-app.git
+        dest: "{{ deploy_laravel_root }}"
+        accept_hostkey: True
+      tags:
+        - deploy
+
+    - name: Composer로 의존성 해결
+      composer:
+        command: install
+        working_dir: "{{ deploy_laravel_root }}"
+        no_dev: "{{ not deploy_laravel_debug }}"
+      tags:
+        - deploy
+
+    - name: .env 템플릿 전송
+      template: 
+        src: files/deploy/.env.j2 
+        dest: /{{ deploy_laravel_root }}/.env
+      tags:
+        - deploy
+
+    - name: 데이터베이스 마이그레이션
+      shell: php artisan migrate --env {{ deploy_laravel_env }} --force
+      args:
+        chdir: "{{ deploy_laravel_root }}"
+      when: deploy_laravel_debug
+      tags:
+        - deploy
+
+    - name: 샘플 데이터 등록
+      shell: php artisan db:seed --env {{ deploy_laravel_env }} --force
+      args:
+        chdir: "{{ deploy_laravel_root }}"
+      when: deploy_laravel_debug
+      tags:
+        - deploy
+
+    - name: Laravel 최적화
+      shell: php artisan optimize chdir={{ deploy_laravel_root }}
+      when: not deploy_laravel_debug
+      tags:
+        - deploy

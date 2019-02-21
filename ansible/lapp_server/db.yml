@@ -1,0 +1,71 @@
+- hosts: db
+  become: yes
+  tasks:
+    # PostgreSQL
+    - name: PostgreSQL 설치확인
+      shell: rpm -q pgdg-centos94
+      register: pgdg_status
+      failed_when: False
+      changed_when: False
+      tags:
+        - postgresql
+
+    - name: PostgreSQL 레포지터리 설치
+      yum: 
+        name: "http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-2.noarch.rpm"
+      when: pgdg_status|failed
+      tags:
+        - postgresql
+
+    - name: PostgreSQL 설치
+      yum: 
+        name:
+          - postgresql94-server
+          - postgresql94
+          - python-psycopg2
+        state: present
+      tags:
+        - postgresql
+
+    - name: PostgreSQL 테이터베이스 초기화
+      command: /usr/pgsql-9.4/bin/postgresql94-setup initdb
+      args:
+        creates: /var/lib/pgsql/9.4/data/postgresql.conf
+      tags:
+        - postgresql
+
+    - name: pg_hba.conf 템플릿 전송
+      template: src=files/postgresql/pg_hba.conf.j2 dest=/var/lib/pgsql/9.4/data/pg_hba.conf
+      notify:
+        - PostgreSQL 재실행
+      tags:
+        - postgresql
+
+    - name: PostgreSQL 실행, 자동실행 활성화
+      service: name=postgresql-9.4 state=started enabled=yes
+      tags:
+        - postgresql
+
+    - name: PostgreSQL 사용자 생성
+      postgresql_user:
+        name: "{{ db_username }}"
+        password: "{{ db_password }}"
+        role_attr_flags: CREATEDB,NOSUPERUSER
+      become_user: postgres
+      tags:
+        - postgresql
+
+    - name: 데이터베이스 생성
+      postgresql_db:
+        name:
+          - "{{ db_database }}"
+          - "{{ db_test_database }}"
+        owner: "{{ db_username }}"
+        encoding: UTF-8 template=template0
+      become_user: postgres
+      tags:
+        - postgresql
+
+  handlers:
+    - name: PostgreSQL 재실행
+      service: name=postgresql-9.4 state=restarted

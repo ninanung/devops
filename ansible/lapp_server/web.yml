@@ -1,0 +1,113 @@
+- hosts: web
+  become: yes
+  tasks:
+    # Apache
+    - name: apache 설치
+      yum: 
+        name: httpd
+        state: present
+      tags:
+        - apache
+
+    - name: httpd.conf 템플릿 전송
+      template:
+        src: files/apache/httpd.conf.j2
+        dest: /etc/httpd/conf/httpd.conf
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - apache
+      notify:
+        - restart apache
+
+    - name: vhost.conf 템플릿 전송
+      template: 
+        src: files/apache/vhost.conf.j2
+        dest: /etc/httpd/conf.d/vhost.conf
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - apache
+      notify:
+        - restart apache
+
+    - name: apache 실행, 자동실행
+      service: 
+        name: httpd
+        state: started
+        enabled: yes
+      tags:
+        - apache
+
+    # php
+    - name: epel 레포지터리 생성
+      yum: 
+        name: epel-release
+        state: present
+      tags: 
+        - php
+    
+    - name: remi 레지터리 확인
+      shell: rpm -q remi-release
+      register: remi_release_status
+      failed_when: False
+      changed_when: False
+      tags:
+        - php
+
+    - debug:
+        var: remi_release_status
+
+    - name: remi 설치
+      yum: 
+        name: 'http://rpms.remirepo.net/enterprise/remi-release-7.rpm'
+      when: remi_release_status is failed
+      tags:
+        - php
+    
+    - name: php 7.0설치
+      yum: 
+        name:
+          - php
+          - php
+          - php-cli
+          - php-process
+          - php-pdo
+          - php-pgsql
+          - php-mbstring
+          - php-mcrypt
+          - php-devel
+          - php-common
+          - php-pear
+          - php-opcache
+          - php-json
+          - php-pecl-memcached
+          - php-pecl-zip
+        state: present
+        enablerepo: remi-php70
+      notify: 
+        - restart apache
+      tags:
+        - php
+
+    - name: 커스텀 php.ini 전송
+      copy:
+        src: files/php/zzmyphp.ini
+        dest: /etc/php.d/zzmyphp.ini
+      notify:
+        - restart apache
+      tags:
+        - php
+
+    - name: composer.phar 설치
+      shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer creates=/usr/bin/composer
+      tags:
+        - php
+
+  handlers:
+    - name: restart apache
+      service: 
+        name: httpd
+        state: restarted
