@@ -1,0 +1,66 @@
+- host: all
+  become: yes
+  vars: 
+    base_locale: LANG=ko_KR.UTF-8
+    base_timezone: Asia/Seoul
+  tasks:
+    # 기본 서버 설정
+    - name: 로케일 설정
+      command: localectl set-locale {{ base_locale }}
+    
+    - name: 타임존 설정
+      command: timezonectl set-timezone {{ base_timezone }}
+
+    - name: 기본 패키지 설정
+      yum:
+        name: 
+          - vim
+          - git
+          - ntp 
+        state: present
+
+    - name: ntpd 활성화
+      service: 
+        name: ntpd
+        state: started
+        enabled: yes
+
+    # Apache 설정 부분
+    - name: apache 설치
+      yum: 
+        name: httpd
+        state: present
+      tags:
+        - apache
+
+    - name: httpd.conf 템플릿 전송
+      template:
+        src: files/apache/httpd.conf.j2
+        dest: /etc/httpd/conf/httpd.conf
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - apache
+      notify:
+        - apache를 재실행
+
+    - name: vhost.conf 템플릿 전송
+      template: 
+        src: files/apache/vhost.conf.j2
+        dest: /etc/httpd/conf.d/vhost.conf
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - apache
+      notify:
+        - apache를 재실행
+
+    - name: apache 실행, 자동실행
+      service: 
+        name: httpd
+        state: started
+        enabled: yes
+      tags:
+       - apache

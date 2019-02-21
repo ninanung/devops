@@ -1,0 +1,29 @@
+- hosts: vm1
+  become: yes
+  vars: 
+    tests:
+      - {text: test1}
+      - {text: test2}
+  tasks:
+    - name: create file
+      file:
+        path: /test
+        state: directory
+
+    - name: copy test
+      copy:
+        src: ./copytest.txt
+        dest: /test/copytest.txt
+
+    - name: template test
+      template:
+        src: ./templatetest.txt.j2
+        dest: /test/templatetest.txt
+
+    - name: stat test
+      stat: 
+        path: /test/copytest.txt
+      register: file_data
+
+    - debug:
+        var: file_data
