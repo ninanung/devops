@@ -8,6 +8,12 @@
   apt: 
     name: npm
   when: npm_result.rc == 1
+  changed_when: True
+
+- name: npm ssl setting
+  shell: npm config set strict-ssl false
+  changed_when: False
+  when: npm_result.rc == 1
 
 - name: check Node exist
   shell: dpkg-query -l node
