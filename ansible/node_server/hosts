@@ -1,0 +1,10 @@
+[vagrant]
+node_vm ansible_host=192.168.11.109
+
+[vagrant:vars]
+ansible_user=vagrant
+ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
+
+# node
+node_port=8888
+app_name=test

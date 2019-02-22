@@ -1,0 +1,34 @@
+- name: check NPM exist
+  shell: dpkg-query -l npm
+  failed_when: False
+  changed_when: False
+  register: npm_result
+
+- name: if NPM is not installed, install it
+  apt: 
+    name: npm
+  when: npm_result.rc == 1
+
+- name: check Node exist
+  shell: dpkg-query -l node
+  failed_when: False
+  changed_when: False
+  register: node_result
+
+- name: if Node is not installed, install it
+  apt: 
+    name: node
+  when: node_result.rc == 1
+
+- name: check Express ClI tool exist
+  shell: npm list -g --depth=0 | grep express-generator
+  failed_when: False
+  changed_when: False
+  register: express_result
+
+- name: install Express CLI
+  npm:
+    name: express-generator
+    global: True
+    version: 4.16.0
+  when: express_result.rc == 1
