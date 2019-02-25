@@ -1,3 +1,4 @@
+---
 - name: check NPM exist
   shell: dpkg-query -l npm
   failed_when: False
@@ -13,7 +14,6 @@
 - name: npm ssl setting
   shell: npm config set strict-ssl false
   changed_when: False
-  when: npm_result.rc == 1
 
 - name: check Node exist
   shell: dpkg-query -l node
@@ -38,3 +38,16 @@
     global: True
     version: 4.16.0
   when: express_result.rc == 1
+
+- name: check pm2 exist
+  shell: npm list -g --depth=0 | grep pm2
+  failed_when: False
+  changed_when: False
+  register: pm2_result
+
+- name: install pm2
+  npm:
+    name: pm2
+    global: True
+    version: 3.3.1
+  when: pm2_result.rc == 1

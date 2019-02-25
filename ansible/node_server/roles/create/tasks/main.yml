@@ -1,0 +1,16 @@
+---
+- name: create directory
+  file:
+    path: '{{app_path}}'
+    state: directory
+
+- name: create express app
+  vars:
+    express_path: '{{app_path}}/{{app_name}}'
+  command: 'express {{express_path}}'
+  failed_when: False
+  changed_when: False
+
+- name: install all dependancies
+  npm: 
+    path: '{{express_path}}'
