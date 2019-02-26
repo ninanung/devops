@@ -1,6 +1,10 @@
 - hosts: vagrant
   become: yes
+  vars:
+    express_path: '{{app_path}}/{{app_name}}'
+    pm2_path: '{{express_path}}/bin/www'
   roles:
     - install
     - create
     #- setup
+    - start

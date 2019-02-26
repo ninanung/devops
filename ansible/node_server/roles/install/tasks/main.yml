@@ -8,23 +8,25 @@
 - name: if NPM is not installed, install it
   apt: 
     name: npm
+    state: latest
   when: npm_result.rc == 1
   changed_when: True
+
+- name: check Nodejs exist
+  shell: dpkg-query -l nodejs
+  failed_when: False
+  changed_when: False
+  register: nodejs_result
+
+- name: if Nodejs is not installed, install it
+  apt: 
+    name: nodejs
+    state: latest
+  when: nodejs_result.rc == 1
 
 - name: npm ssl setting
   shell: npm config set strict-ssl false
   changed_when: False
-
-- name: check Node exist
-  shell: dpkg-query -l node
-  failed_when: False
-  changed_when: False
-  register: node_result
-
-- name: if Node is not installed, install it
-  apt: 
-    name: node
-  when: node_result.rc == 1
 
 - name: check Express ClI tool exist
   shell: npm list -g --depth=0 | grep express-generator

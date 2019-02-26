@@ -1,0 +1,18 @@
+---
+- name: start the server
+  command: 'pm2 start {{pm2_path}} --name {{app_name}}'
+  become: True
+  failed_when: False
+  changed_when: False
+  register: pm2_start
+
+- name: pm2  status
+  command: 'pm2 status'
+  become: True
+  failed_when: False
+  changed_when: False
+  register: pm2_status
+
+- name: debug
+  debug:
+    var: pm2_status

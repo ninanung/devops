@@ -1,15 +1,21 @@
 ---
+- name: find directory
+  shell: 'find {{express_path}}'
+  failed_when: False
+  changed_when: False
+  register: finding
+
 - name: create directory
   file:
     path: '{{app_path}}'
     state: directory
+  when: finding.rc == 1
 
 - name: create express app
-  vars:
-    express_path: '{{app_path}}/{{app_name}}'
-  command: 'express {{express_path}}'
+  shell: 'express {{express_path}}'
   failed_when: False
   changed_when: False
+  when: finding.rc == 1
 
 - name: install all dependancies
   npm: 
