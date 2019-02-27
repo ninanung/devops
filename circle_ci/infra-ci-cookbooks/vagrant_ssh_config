@@ -1,0 +1,10 @@
+Host webapp
+  HostName 127.0.0.1
+  User vagrant
+  Port 2222
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/seungjejun/Documents/coding/server/devops/circle_ci/infra-ci-cookbooks/.vagrant/machines/webapp/virtualbox/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
